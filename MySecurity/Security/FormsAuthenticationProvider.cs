@@ -12,10 +12,12 @@ namespace MySecurity.Security
     public class FormsAuthenticationProvider : IAuthenticationProvider
     {
         private readonly HttpContextBase httpContext;
+        private readonly IUserRepository userRepository;
 
-        public FormsAuthenticationProvider(HttpContextBase httpContext)
+        public FormsAuthenticationProvider(HttpContextBase httpContext, IUserRepository userRepository)
         {
             this.httpContext = httpContext;
+            this.userRepository = userRepository;
         }
 
         #region public IAuthenticationProvider implementation
@@ -34,10 +36,12 @@ namespace MySecurity.Security
             FormsAuthentication.SignOut();
         }
 
-        void IAuthenticationProvider.CreateAccount(string userName, string password)
+        ISitePrincipal IAuthenticationProvider.CreateAccount(string userName, string password)
         {
-            throw new NotImplementedException();
+            return this.CreateAccount(userName, password);
         }
+
+
 
         #endregion
 
@@ -70,13 +74,15 @@ namespace MySecurity.Security
 
         private bool Login(string userName, string password)
         {
-            string roles = string.Empty;
+            ISitePrincipal principal = this.userRepository.GetByUserName(userName);
 
-            if (userName == "Admin")
-                roles = "Admin,SuperUser, User";
+            if (principal == null)
+                return false;
 
-            if (userName == "Ben")
-                roles = "SuperUser, User";
+            if (!BCrypt.Net.BCrypt.Verify(password, principal.Password))
+                return false;
+
+            string roles = string.Join(",", principal.Roles);
 
 
             FormsAuthenticationTicket ticket = new FormsAuthenticationTicket(
@@ -108,6 +114,16 @@ namespace MySecurity.Security
             FormsAuthentication.SignOut();
         }
 
+        private ISitePrincipal CreateAccount(string userName, string password)
+        {
+
+            string encryptedPassword = BCrypt.Net.BCrypt.HashPassword(password, BCrypt.Net.BCrypt.GenerateSalt(12));
+
+            ISitePrincipal newPrincipal = this.userRepository.CreateUser(userName, encryptedPassword);
+
+            return newPrincipal;
+
+        }
 
 
         #endregion

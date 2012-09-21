@@ -12,6 +12,7 @@ using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
 
+
 namespace MySecurity
 {
     // Note: For instructions on enabling IIS6 or IIS7 classic mode, 
@@ -27,6 +28,7 @@ namespace MySecurity
             var builder = new ContainerBuilder();
             builder.RegisterControllers(Assembly.GetExecutingAssembly()).PropertiesAutowired();
 
+            builder.RegisterType<UserRepository>().As<IUserRepository>();
             builder.RegisterType<FormsAuthenticationProvider>().As<IAuthenticationProvider>().InstancePerHttpRequest();
             builder.RegisterModule(new AutofacWebTypesModule()); //this registers the Http abstractions (e.g. - HttpContextBase, etc) http://code.google.com/p/autofac/wiki/Mvc3Integration
 
@@ -46,9 +48,6 @@ namespace MySecurity
 
         }
 
-        protected void Application_AuthenticateRequest(Object sender, EventArgs e)
-        {
-            
-        }
+
     }
 }

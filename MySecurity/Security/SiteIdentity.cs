@@ -19,7 +19,7 @@ namespace MySecurity.Security
 
         public string AuthenticationType
         {
-            get { return "ArKaAuthentication"; }
+            get { return "FormsAuthentication"; }
         }
 
         public bool IsAuthenticated
